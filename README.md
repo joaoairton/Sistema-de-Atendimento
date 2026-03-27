@@ -42,7 +42,7 @@ ATENDIMENTO_V1.0/
 │   ├── exportar.html
 │   ├── importar.html
 │   └── index.html
-└── app.py / run.py / arquivo principal do Flask
+└── app.py / Ponto de entrada da aplicação
 ```
 ---
 
