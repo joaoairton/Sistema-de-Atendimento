@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block title %}Nova Prescrição — Atendimento #{{ atendimento.id_atendimento }}{% endblock %}
+{% block titulo %}Nova Prescrição{% endblock %}
+{% block subtitulo %}Atendimento #{{ atendimento.id_atendimento }} — {{ atendimento.nome_paciente }}{% endblock %}
+
+{% block conteudo %}
+<div class="breadcrumb">
+  <a href="{{ url_for('atendimentos.listar_atendimentos') }}">Atendimentos</a>
+  <span>›</span>
+  <a href="{{ url_for('atendimentos.detalhe_atendimento', id_atendimento=atendimento.id_atendimento) }}">
+    #{{ atendimento.id_atendimento }} — {{ atendimento.nome_paciente }}
+  </a>
+  <span>›</span>
+  <span>Nova prescrição</span>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start">
+
+  <!-- FORMULÁRIO -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-titulo">Dados da prescrição</span>
+    </div>
+    <div class="card-body">
+      <form method="post" id="form-prescricao" novalidate>
+
+        <!-- Paciente (somente leitura) -->
+        <div class="form-grid" style="margin-bottom:16px">
+          <div class="form-campo">
+            <label>Paciente</label>
+            <input type="text" value="{{ atendimento.nome_paciente }}" disabled>
+          </div>
+          <div class="form-campo">
+            <label>CPF</label>
+            <input type="text" value="{{ atendimento.cpf_paciente[:3] }}.{{ atendimento.cpf_paciente[3:6] }}.{{ atendimento.cpf_paciente[6:9] }}-{{ atendimento.cpf_paciente[9:] }}" disabled>
+          </div>
+        </div>
+
+        <!-- CRM -->
+        <div class="form-grid col-1" style="margin-bottom:16px">
+          <div class="form-campo">
+            <label for="crm_medico">CRM do médico</label>
+            <input type="text" id="crm_medico" name="crm_medico"
+              placeholder="Ex: CRM12345SP" maxlength="15"
+              value="{{ atendimento.crm_medico or '' }}"
+              oninput="this.value = this.value.toUpperCase()">
+            <div class="campo-hint">Preenchido automaticamente com o CRM do atendimento</div>
+          </div>
+        </div>
+
+        <!-- Medicamento + Quantidade + Unidade -->
+        <div class="form-grid col-3" style="margin-bottom:16px">
+          <div class="form-campo">
+            <label for="codigo_medicamento">Código do medicamento *</label>
+            <input type="number" id="codigo_medicamento" name="codigo_medicamento"
+              placeholder="Ex: 453" min="1" required
+              oninput="atualizarPreview()">
+          </div>
+          <div class="form-campo">
+            <label for="quantidade">Quantidade *</label>
+            <input type="number" id="quantidade" name="quantidade"
+              placeholder="Ex: 1.000" step="0.001" min="0.001" required
+              oninput="atualizarPreview()">
+          </div>
+          <div class="form-campo">
+            <label for="unidade_medida">Unidade *</label>
+            <select id="unidade_medida" name="unidade_medida" required
+              onchange="atualizarPreview()">
+              <option value="">Selecione...</option>
+              <option value="COMP">COMP: Comprimido</option>
+              <option value="ML  ">ML: Mililitro</option>
+              <option value="MG  ">MG: Miligrama</option>
+              <option value="UN  ">UN: Unidade</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Observação -->
+        <div class="form-grid col-1" style="margin-bottom:4px">
+          <div class="form-campo">
+            <label for="observacao">Instruções de uso</label>
+            <textarea id="observacao" name="observacao" rows="3"
+              maxlength="100"
+              placeholder="Ex: Tomar 1 comprimido ao dia pela manhã com água..."
+              oninput="document.getElementById('obs-count').textContent = this.value.length; atualizarPreview()"></textarea>
+            <div class="campo-hint"><span id="obs-count">0</span>/100 caracteres</div>
+          </div>
+        </div>
+
+        <div class="acoes" style="margin-top:20px;padding-top:16px;border-top:1px solid var(--borda)">
+          <button type="submit" class="btn btn-primario">
+            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+            </svg>
+            Confirmar prescrição
+          </button>
+          <a href="{{ url_for('atendimentos.detalhe_atendimento', id_atendimento=atendimento.id_atendimento) }}"
+             class="btn btn-secundario">Cancelar</a>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- PAINEL: prévia do arquivo -->
+  <div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-titulo">Prévia do arquivo</span>
+      </div>
+      <div class="card-body">
+        <p style="font-size:11px;color:var(--texto-2);margin-bottom:10px">
+          Este arquivo será gerado ao confirmar:
+        </p>
+        <div style="background:var(--bg);border:1px solid var(--borda);border-radius:6px;padding:10px;font-family:'DM Mono',monospace;font-size:10px;word-break:break-all;line-height:1.8;color:var(--texto-2)" id="preview-arquivo">
+          Preencha os campos para visualizar...
+        </div>
+        <p style="font-size:10px;color:var(--texto-2);margin-top:8px">
+          Tamanho fixo: 200 bytes por registro
+        </p>
+      </div>
+    </div>
+
+    <!-- Prescrições do atendimento -->
+    {% if prescricoes %}
+    <div class="card" style="margin-top:16px">
+      <div class="card-header">
+        <span class="card-titulo">Prescrições deste atendimento</span>
+        <span class="badge badge-azul">{{ prescricoes|length }}</span>
+      </div>
+      <div style="padding:0">
+        {% for p in prescricoes %}
+        <div style="padding:10px 16px;border-bottom:1px solid var(--borda);font-size:13px">
+          <div style="font-weight:600;color:var(--texto)">Medicamento {{ p.codigo_medicamento }}</div>
+          <div style="color:var(--texto-2);font-size:11px;margin-top:2px">
+            {{ p.quantidade }} {{ p.unidade_medida.strip() }} —
+            {{ p.data_prescricao.strftime('%d/%m/%Y') }} às {{ p.hora_prescricao.strftime('%H:%M') }}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function pad(valor, tamanho, esquerda=true) {
+    const s = String(valor);
+    return esquerda ? s.padStart(tamanho, '0') : s.padEnd(tamanho, ' ');
+  }
+
+  function atualizarPreview() {
+    const idAten  = {{ atendimento.id_atendimento }};
+    const cpf     = "{{ atendimento.cpf_paciente }}";
+    const crm     = document.getElementById('crm_medico').value || '';
+    const codMed  = document.getElementById('codigo_medicamento').value || '';
+    const qtd     = document.getElementById('quantidade').value || '';
+    const unidade = document.getElementById('unidade_medida').value || '';
+    const obs     = document.getElementById('observacao').value || '';
+
+    if (!codMed || !qtd || !unidade) {
+      document.getElementById('preview-arquivo').textContent = 'Preencha os campos obrigatórios...';
+      return;
+    }
+
+    const hoje = new Date();
+    const data = String(hoje.getFullYear()-2000).padStart(2,'0')
+               + String(hoje.getMonth()+1).padStart(2,'0')
+               + String(hoje.getDate()).padStart(2,'0');
+    const hora = String(hoje.getHours()).padStart(2,'0')
+               + String(hoje.getMinutes()).padStart(2,'0')
+               + String(hoje.getSeconds()).padStart(2,'0');
+
+    const qtdNum = parseFloat(qtd) || 0;
+    const qtdFmt = Math.round(qtdNum * 1000).toString().padStart(8, '0');
+
+    const linha =
+      pad(idAten, 30) +
+      cpf.padStart(11, '0') +
+      data + hora +
+      crm.padEnd(15, ' ') +
+      pad(codMed, 20) +
+      qtdFmt +
+      unidade.padEnd(4, ' ') +
+      obs.padEnd(100, ' ');
+
+    document.getElementById('preview-arquivo').textContent = linha.substring(0, 100) + '...';
+  }
+</script>
+{% endblock %}

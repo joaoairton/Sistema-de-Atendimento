@@ -1,0 +1,308 @@
+{% extends "base.html" %}
+{% block title %}Exportar Arquivos{% endblock %}
+{% block titulo %}Exportar Arquivos{% endblock %}
+{% block subtitulo %}Geração manual dos arquivos de integração{% endblock %}
+
+{% block estilos %}
+<style>
+  .abas { display:flex; gap:4px; margin-bottom:20px; border-bottom:2px solid var(--borda); padding-bottom:0; }
+  .aba-btn {
+    padding:10px 20px; border:none; background:none; cursor:pointer;
+    font-size:14px; font-weight:500; color:var(--texto-2);
+    font-family:'Inter',sans-serif;
+    border-bottom:2px solid transparent; margin-bottom:-2px;
+    transition:all .15s; border-radius:6px 6px 0 0;
+  }
+  .aba-btn:hover { color:var(--texto); background:var(--surface-2); }
+  .aba-btn.ativa { color:var(--azul); border-bottom-color:var(--azul); background:none; }
+  .aba-conteudo { display:none; }
+  .aba-conteudo.ativa { display:block; }
+
+  .preview-box {
+    background:var(--surface-2); border:1px solid var(--borda);
+    border-radius:8px; padding:16px 20px;
+    margin-bottom:20px;
+  }
+  .preview-grid {
+    display:grid; grid-template-columns:repeat(3,1fr); gap:16px;
+  }
+  .preview-item { display:flex; flex-direction:column; gap:4px; }
+  .preview-label { font-size:11px; font-weight:600; color:var(--texto-2); text-transform:uppercase; letter-spacing:.05em; }
+  .preview-valor { font-size:18px; font-weight:700; color:var(--texto); font-family:'JetBrains Mono',monospace; }
+  .preview-valor.destaque { color:var(--azul); }
+  .preview-valor.verde { color:var(--verde); }
+
+  .arquivo-nome {
+    background:var(--surface); border:1px solid var(--borda);
+    border-left:3px solid var(--azul);
+    border-radius:6px; padding:10px 14px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px; color:var(--texto-2);
+    margin-bottom:16px;
+  }
+
+  .periodo-form {
+    display:flex; gap:12px; align-items:flex-end;
+    margin-bottom:20px; flex-wrap:wrap;
+  }
+  .periodo-form .form-campo { flex:1; min-width:160px; }
+  .resultado-vazio {
+    text-align:center; padding:32px;
+    color:var(--texto-3); font-size:14px;
+  }
+
+  .tabela-preview { max-height:320px; overflow-y:auto; }
+  .tabela-preview table { font-size:13px; }
+</style>
+{% endblock %}
+
+{% block conteudo %}
+
+<!-- ABAS -->
+<div class="abas">
+  <button class="aba-btn ativa" onclick="trocarAba('prescricao', this)">
+    Prescrições
+  </button>
+  <button class="aba-btn" onclick="trocarAba('abertura', this)">
+    Abertura de atendimentos
+  </button>
+  <button class="aba-btn" onclick="trocarAba('encerramento', this)">
+    Encerramento de atendimentos
+  </button>
+</div>
+
+<!-- ═══════════════════ ABA PRESCRIÇÕES ═══════════════════ -->
+<div class="aba-conteudo ativa" id="aba-prescricao">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-titulo">Exportar prescrições</span>
+      <span class="badge badge-azul">ATEND_PRESCRICAO_[PERIODO].txt</span>
+    </div>
+    <div class="card-body">
+
+      <form method="post" action="{{ url_for('exportacao.exportar_arquivos') }}">
+        <input type="hidden" name="tipo" value="prescricao">
+
+        <div class="periodo-form">
+          <div class="form-campo">
+            <label for="p_data_ini">Data inicial</label>
+            <input type="date" id="p_data_ini" name="data_ini"
+              value="{{ hoje }}" required onchange="carregarPreview('prescricao')">
+          </div>
+          <div class="form-campo">
+            <label for="p_data_fim">Data final</label>
+            <input type="date" id="p_data_fim" name="data_fim"
+              value="{{ hoje }}" required onchange="carregarPreview('prescricao')">
+          </div>
+          <button type="button" class="btn btn-secundario"
+            onclick="carregarPreview('prescricao')">
+            Visualizar registros
+          </button>
+        </div>
+
+        <!-- Preview dinâmico -->
+        <div id="preview-prescricao">
+          <div class="resultado-vazio">Selecione o período e clique em Visualizar</div>
+        </div>
+
+        <div class="acoes" style="margin-top:16px">
+          <button type="submit" class="btn btn-primario" id="btn-exp-prescricao" disabled>
+            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+            </svg>
+            Gerar arquivo
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ ABA ABERTURA ═══════════════════ -->
+<div class="aba-conteudo" id="aba-abertura">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-titulo">Exportar aberturas de atendimento</span>
+      <span class="badge badge-azul">ATEND_ABERTURA_[PERIODO].txt</span>
+    </div>
+    <div class="card-body">
+
+      <form method="post" action="{{ url_for('exportacao.exportar_arquivos') }}">
+        <input type="hidden" name="tipo" value="abertura">
+
+        <div class="periodo-form">
+          <div class="form-campo">
+            <label for="a_data_ini">Data inicial</label>
+            <input type="date" id="a_data_ini" name="data_ini"
+              value="{{ hoje }}" required onchange="carregarPreview('abertura')">
+          </div>
+          <div class="form-campo">
+            <label for="a_data_fim">Data final</label>
+            <input type="date" id="a_data_fim" name="data_fim"
+              value="{{ hoje }}" required onchange="carregarPreview('abertura')">
+          </div>
+          <button type="button" class="btn btn-secundario"
+            onclick="carregarPreview('abertura')">
+            Visualizar registros
+          </button>
+        </div>
+
+        <div id="preview-abertura">
+          <div class="resultado-vazio">Selecione o período e clique em Visualizar</div>
+        </div>
+
+        <div class="acoes" style="margin-top:16px">
+          <button type="submit" class="btn btn-primario" id="btn-exp-abertura" disabled>
+            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+            </svg>
+            Gerar arquivo
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ ABA ENCERRAMENTO ═══════════════════ -->
+<div class="aba-conteudo" id="aba-encerramento">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-titulo">Exportar encerramentos de atendimento</span>
+      <span class="badge badge-azul">ATEND_ENCERRAMENTO_[PERIODO].txt</span>
+    </div>
+    <div class="card-body">
+
+      <form method="post" action="{{ url_for('exportacao.exportar_arquivos') }}">
+        <input type="hidden" name="tipo" value="encerramento">
+
+        <div class="periodo-form">
+          <div class="form-campo">
+            <label for="e_data_ini">Data inicial</label>
+            <input type="date" id="e_data_ini" name="data_ini"
+              value="{{ hoje }}" required onchange="carregarPreview('encerramento')">
+          </div>
+          <div class="form-campo">
+            <label for="e_data_fim">Data final</label>
+            <input type="date" id="e_data_fim" name="data_fim"
+              value="{{ hoje }}" required onchange="carregarPreview('encerramento')">
+          </div>
+          <button type="button" class="btn btn-secundario"
+            onclick="carregarPreview('encerramento')">
+            Visualizar registros
+          </button>
+        </div>
+
+        <div id="preview-encerramento">
+          <div class="resultado-vazio">Selecione o período e clique em Visualizar</div>
+        </div>
+
+        <div class="acoes" style="margin-top:16px">
+          <button type="submit" class="btn btn-primario" id="btn-exp-encerramento" disabled>
+            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+            </svg>
+            Gerar arquivo
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // ── Troca de abas ─────────────────────────────────────────────────────────
+  function trocarAba(id, btn) {
+    document.querySelectorAll('.aba-conteudo').forEach(a => a.classList.remove('ativa'));
+    document.querySelectorAll('.aba-btn').forEach(b => b.classList.remove('ativa'));
+    document.getElementById('aba-' + id).classList.add('ativa');
+    btn.classList.add('ativa');
+  }
+
+  // ── Carrega preview via AJAX ──────────────────────────────────────────────
+  function carregarPreview(tipo) {
+    const prefixos = { prescricao:'p_', abertura:'a_', encerramento:'e_' };
+    const pref = prefixos[tipo];
+    const ini  = document.getElementById(pref + 'data_ini').value;
+    const fim  = document.getElementById(pref + 'data_fim').value;
+
+    if (!ini || !fim) return;
+
+    const box = document.getElementById('preview-' + tipo);
+    box.innerHTML = '<div class="resultado-vazio">Carregando...</div>';
+
+    fetch(`/api/exportar-preview?tipo=${tipo}&data_ini=${ini}&data_fim=${fim}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.total === 0) {
+          box.innerHTML = '<div class="resultado-vazio">Nenhum registro encontrado no período selecionado.</div>';
+          document.getElementById('btn-exp-' + tipo).disabled = true;
+          return;
+        }
+
+        document.getElementById('btn-exp-' + tipo).disabled = false;
+
+        // Nome do arquivo
+        const iniF = ini.replace(/-/g,'').slice(2);
+        const fimF = fim.replace(/-/g,'').slice(2);
+        const nomeArq = tipo === 'prescricao'
+          ? `ATEND_PRESCRICAO_${iniF}_${fimF}.txt`
+          : tipo === 'abertura'
+          ? `ATEND_ABERTURA_${iniF}_${fimF}.txt`
+          : `ATEND_ENCERRAMENTO_${iniF}_${fimF}.txt`;
+
+        let html = `
+          <div class="arquivo-nome">📄 ${nomeArq}</div>
+          <div class="preview-box">
+            <div class="preview-grid">
+              <div class="preview-item">
+                <div class="preview-label">Total de registros</div>
+                <div class="preview-valor destaque">${data.total}</div>
+              </div>
+              <div class="preview-item">
+                <div class="preview-label">Período</div>
+                <div class="preview-valor" style="font-size:14px">${formatarData(ini)} → ${formatarData(fim)}</div>
+              </div>`;
+
+        if (data.valor_total !== undefined) {
+          html += `
+              <div class="preview-item">
+                <div class="preview-label">Valor total</div>
+                <div class="preview-valor verde">R$ ${data.valor_total}</div>
+              </div>`;
+        } else {
+          html += `<div class="preview-item"></div>`;
+        }
+
+        html += `</div></div>`;
+
+        // Tabela de registros
+        html += `<div class="tabela-preview"><table><thead><tr>`;
+        data.colunas.forEach(c => { html += `<th>${c}</th>`; });
+        html += `</tr></thead><tbody>`;
+        data.registros.forEach(r => {
+          html += '<tr>';
+          r.forEach(v => { html += `<td>${v}</td>`; });
+          html += '</tr>';
+        });
+        html += `</tbody></table></div>`;
+
+        box.innerHTML = html;
+      })
+      .catch(() => {
+        box.innerHTML = '<div class="resultado-vazio">Erro ao carregar. Tente novamente.</div>';
+      });
+  }
+
+  function formatarData(d) {
+    const [a,m,dia] = d.split('-');
+    return `${dia}/${m}/${a}`;
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% block title %}Atendimento #{{ atendimento.id_atendimento }}{% endblock %}
+{% block titulo %}Atendimento #{{ atendimento.id_atendimento }}{% endblock %}
+{% block subtitulo %}{{ atendimento.nome_paciente }}{% endblock %}
+
+{% block topbar_acoes %}
+  {% if atendimento.status == 'ABERTO' %}
+    <a href="{{ url_for('prescricoes.nova_prescricao', id_atendimento=atendimento.id_atendimento) }}"
+       class="btn btn-primario">
+      <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+      </svg>
+      Nova prescrição
+    </a>
+    <a href="{{ url_for('atendimentos.encerrar_atendimento', id_atendimento=atendimento.id_atendimento) }}"
+       class="btn btn-perigo">
+      <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+      Encerrar atendimento
+    </a>
+  {% endif %}
+{% endblock %}
+
+{% block conteudo %}
+<div class="breadcrumb">
+  <a href="{{ url_for('atendimentos.listar_atendimentos') }}">Atendimentos</a>
+  <span>›</span>
+  <span>#{{ atendimento.id_atendimento }} — {{ atendimento.nome_paciente }}</span>
+</div>
+
+<!-- Dados do atendimento -->
+<div class="card" style="margin-bottom:20px">
+  <div class="card-header">
+    <span class="card-titulo">Dados do atendimento</span>
+    {% if atendimento.status == 'ABERTO' %}
+      <span class="badge badge-verde">Aberto</span>
+    {% else %}
+      <span class="badge badge-cinza">Encerrado</span>
+    {% endif %}
+  </div>
+  <div class="card-body">
+    <div class="info-grid" style="grid-template-columns:repeat(4,1fr)">
+      <div class="info-item">
+        <div class="info-label">Paciente</div>
+        <div class="info-valor">{{ atendimento.nome_paciente }}</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">CPF</div>
+        <div class="info-valor mono">{{ atendimento.cpf_paciente[:3] }}.{{ atendimento.cpf_paciente[3:6] }}.{{ atendimento.cpf_paciente[6:9] }}-{{ atendimento.cpf_paciente[9:] }}</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Data de abertura</div>
+        <div class="info-valor">{{ atendimento.data_abertura.strftime('%d/%m/%Y') }} às {{ atendimento.hora_abertura.strftime('%H:%M') }}</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Tipo</div>
+        <div class="info-valor">
+          {% if atendimento.tipo == 'C' %}Consulta
+          {% elif atendimento.tipo == 'R' %}Retorno
+          {% elif atendimento.tipo == 'I' %}Internação
+          {% elif atendimento.tipo == 'E' %}Emergência{% endif %}
+        </div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Médico (CRM)</div>
+        <div class="info-valor mono">{{ atendimento.crm_medico or '—' }}</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Especialidade</div>
+        <div class="info-valor">{{ atendimento.especialidade or '—' }}</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Convênio</div>
+        <div class="info-valor">{{ atendimento.convenio or '—' }}</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Carteirinha</div>
+        <div class="info-valor mono">{{ atendimento.carteirinha or '—' }}</div>
+      </div>
+    </div>
+
+    {% if atendimento.status == 'ENCERRADO' %}
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--borda)">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+        <div class="info-item">
+          <div class="info-label">Data de encerramento</div>
+          <div class="info-valor">{{ atendimento.data_encerramento.strftime('%d/%m/%Y') if atendimento.data_encerramento else '—' }} às {{ atendimento.hora_encerramento.strftime('%H:%M') if atendimento.hora_encerramento else '' }}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">CID-10</div>
+          <div class="info-valor mono">{{ atendimento.cid_principal or '—' }}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Procedimento (TUSS)</div>
+          <div class="info-valor mono">{{ atendimento.procedimento or '—' }}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Valor total</div>
+          <div class="info-valor" style="color:var(--verde);font-weight:600">
+            {% if atendimento.valor_procedimentos %}
+              R$ {{ "%.2f"|format(atendimento.valor_procedimentos)|replace(".", ",") }}
+            {% else %}—{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if atendimento.observacao %}
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--borda)">
+      <div class="info-label">Observações</div>
+      <div class="info-valor" style="margin-top:4px">{{ atendimento.observacao }}</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Prescrições -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-titulo">Prescrições</span>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="badge badge-azul">{{ prescricoes|length }} registro(s)</span>
+      {% if atendimento.status == 'ABERTO' %}
+        <a href="{{ url_for('prescricoes.nova_prescricao', id_atendimento=atendimento.id_atendimento) }}"
+           class="btn btn-primario btn-sm">+ Nova prescrição</a>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if prescricoes %}
+  <div class="tabela-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th><th>Medicamento</th><th>Quantidade</th>
+          <th>Médico</th><th>Instruções</th><th>Data / Hora</th>
+          <th>Status Estoque</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in prescricoes %}
+        <tr>
+          <td><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--texto-2)">{{ p.id_prescricao }}</span></td>
+          <td><span class="badge badge-azul">{{ p.codigo_medicamento }}</span></td>
+          <td><strong>{{ p.quantidade }}</strong> {{ p.unidade_medida.strip() if p.unidade_medida else '' }}</td>
+          <td><span style="font-family:'JetBrains Mono',monospace;font-size:12px">{{ p.crm_medico or '—' }}</span></td>
+          <td style="font-size:12px;color:var(--texto-2)">{{ p.observacao or '—' }}</td>
+          <td>
+            {{ p.data_prescricao.strftime('%d/%m/%Y') }}<br>
+            <span style="font-size:11px;color:var(--texto-2)">{{ p.hora_prescricao.strftime('%H:%M:%S') }}</span>
+          </td>
+          <td>
+            {% if p.status_estoque == 'DISPONIVEL' %}
+              <span class="badge badge-verde">✓ Disponível</span>
+            {% elif p.status_estoque == 'INDISPONIVEL' %}
+              <span class="badge badge-verm">✕ Indisponível</span>
+            {% else %}
+              <span class="badge badge-cinza">Aguardando</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="vazio">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+    </svg>
+    <p>Nenhuma prescrição registrada neste atendimento.<br>
+    {% if atendimento.status == 'ABERTO' %}
+      <a href="{{ url_for('prescricoes.nova_prescricao', id_atendimento=atendimento.id_atendimento) }}"
+         style="color:var(--azul)">Adicionar primeira prescrição</a>
+    {% endif %}
+    </p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+{% block title %}Novo Atendimento{% endblock %}
+{% block titulo %}Novo Atendimento{% endblock %}
+{% block subtitulo %}Preencha os dados para abrir o atendimento{% endblock %}
+
+{% block conteudo %}
+<div class="breadcrumb">
+  <a href="{{ url_for('atendimentos.listar_atendimentos') }}">Atendimentos</a>
+  <span>›</span>
+  <span>Novo atendimento</span>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start">
+
+  <!-- FORMULÁRIO -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-titulo">Dados do atendimento</span>
+    </div>
+    <div class="card-body">
+      <form method="post" id="form-atendimento" novalidate>
+
+        <!-- CPF -->
+        <div class="form-grid col-1" style="margin-bottom:16px">
+          <div class="form-campo">
+            <label for="cpf">CPF do paciente *</label>
+            <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00"
+              maxlength="14" required oninput="formatarCPF(this); buscarPaciente(this.value)">
+            <div class="campo-hint" id="cpf-hint">Digite o CPF para buscar o paciente automaticamente</div>
+          </div>
+        </div>
+
+        <!-- Paciente encontrado -->
+        <div id="paciente-box" style="display:none;margin-bottom:16px">
+          <div class="status-fin regular" id="paciente-info">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+            </svg>
+            <span id="paciente-nome">—</span>
+          </div>
+        </div>
+
+        <!-- Tipo + CRM -->
+        <div class="form-grid" style="margin-bottom:16px">
+          <div class="form-campo">
+            <label for="tipo">Tipo de atendimento *</label>
+            <select id="tipo" name="tipo" required onchange="verificarEmergencia(this.value)">
+              <option value="">Selecione...</option>
+              <option value="C">Consulta</option>
+              <option value="R">Retorno</option>
+              <option value="I">Internação</option>
+              <option value="E">Emergência</option>
+            </select>
+          </div>
+          <div class="form-campo">
+            <label for="crm_medico">CRM do médico</label>
+            <input type="text" id="crm_medico" name="crm_medico"
+              placeholder="CRM12345SP" maxlength="15">
+          </div>
+        </div>
+
+        <!-- Especialidade -->
+        <div class="form-grid col-1" style="margin-bottom:16px">
+          <div class="form-campo">
+            <label for="especialidade">Especialidade</label>
+            <input type="text" id="especialidade" name="especialidade"
+              placeholder="Ex: CARDIOLOGIA, CLINICA GERAL" maxlength="40"
+              oninput="this.value = this.value.toUpperCase()">
+          </div>
+        </div>
+
+        <!-- Convênio + Carteirinha -->
+        <div class="form-grid" style="margin-bottom:16px">
+          <div class="form-campo">
+            <label for="convenio">Convênio</label>
+            <input type="text" id="convenio" name="convenio"
+              placeholder="Nome do convênio ou PARTICULAR" maxlength="30"
+              oninput="this.value = this.value.toUpperCase(); toggleCarteirinha(this.value)">
+          </div>
+          <div class="form-campo" id="campo-carteirinha">
+            <label for="carteirinha">Número da carteirinha</label>
+            <input type="text" id="carteirinha" name="carteirinha"
+              placeholder="Número da carteirinha" maxlength="20">
+          </div>
+        </div>
+
+        <!-- Observações -->
+        <div class="form-grid col-1" style="margin-bottom:4px">
+          <div class="form-campo">
+            <label for="observacao">Observações</label>
+            <textarea id="observacao" name="observacao" rows="3"
+              maxlength="100" placeholder="Informações adicionais sobre o atendimento..."></textarea>
+            <div class="campo-hint"><span id="obs-count">0</span>/100 caracteres</div>
+          </div>
+        </div>
+
+        <!-- Alerta emergência -->
+        <div id="alerta-emergencia" style="display:none;margin:12px 0">
+          <div class="status-fin emergencia">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            Atendimento de emergência — será processado independentemente do status financeiro do paciente.
+          </div>
+        </div>
+
+        <div class="acoes" style="margin-top:20px;padding-top:16px;border-top:1px solid var(--borda)">
+          <button type="submit" class="btn btn-primario" id="btn-abrir">
+            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+            </svg>
+            Abrir atendimento
+          </button>
+          <a href="{{ url_for('atendimentos.listar_atendimentos') }}" class="btn btn-secundario">Cancelar</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- PAINEL LATERAL: status financeiro -->
+  <div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-titulo">Status financeiro</span>
+      </div>
+      <div class="card-body" id="painel-financeiro">
+        <div style="text-align:center;padding:20px 0;color:var(--texto-2)">
+          <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 8px;display:block;opacity:.4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+          </svg>
+          <p style="font-size:12px">Digite o CPF para<br>verificar o status</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // ── Formatar CPF ─────────────────────────────────────────────────────────────
+  function formatarCPF(input) {
+    let v = input.value.replace(/\D/g, '').slice(0, 11);
+    if      (v.length > 9) v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
+    else if (v.length > 6) v = v.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
+    else if (v.length > 3) v = v.replace(/(\d{3})(\d{1,3})/, '$1.$2');
+    input.value = v;
+  }
+
+  // ── Buscar paciente e status financeiro via AJAX ──────────────────────────────
+  let timerCPF = null;
+  function buscarPaciente(valor) {
+    const cpf = valor.replace(/\D/g, '');
+    if (cpf.length < 11) {
+      document.getElementById('paciente-box').style.display = 'none';
+      document.getElementById('cpf-hint').textContent = 'Digite o CPF para buscar o paciente automaticamente';
+      resetarPainelFinanceiro();
+      return;
+    }
+    clearTimeout(timerCPF);
+    timerCPF = setTimeout(() => {
+      document.getElementById('cpf-hint').textContent = 'Buscando...';
+      fetch(`/api/paciente-status/${cpf}`)
+        .then(r => r.json())
+        .then(data => {
+          if (!data.existe) {
+            document.getElementById('cpf-hint').innerHTML =
+              '✕ Paciente não cadastrado. <a href="/pacientes/novo" style="color:var(--azul)">Cadastrar agora</a>';
+            document.getElementById('paciente-box').style.display = 'none';
+            resetarPainelFinanceiro();
+            return;
+          }
+          document.getElementById('cpf-hint').textContent = '';
+          document.getElementById('paciente-nome').textContent = data.nome;
+          document.getElementById('paciente-box').style.display = 'block';
+          atualizarPainelFinanceiro(data);
+        });
+    }, 400);
+  }
+
+  // ── Painel financeiro ────────────────────────────────────────────────────────
+  function resetarPainelFinanceiro() {
+    document.getElementById('painel-financeiro').innerHTML = `
+      <div style="text-align:center;padding:20px 0;color:var(--texto-2)">
+        <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 8px;display:block;opacity:.4">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+        </svg>
+        <p style="font-size:12px">Digite o CPF para<br>verificar o status</p>
+      </div>`;
+  }
+
+  function atualizarPainelFinanceiro(data) {
+    const status = data.status_financeiro || 'NAO_VERIFICADO';
+    const configs = {
+      'REGULAR':       { cls:'regular',   icone:'✓', label:'Regular',   desc:'Sem pendências financeiras.' },
+      'PENDENTE':      { cls:'pendente',  icone:'!', label:'Pendente',  desc:`${data.qtd_pendencias || 0} cobrança(s) em aberto.` },
+      'BLOQUEADO':     { cls:'bloqueado', icone:'✕', label:'Bloqueado', desc:'Atendimento eletivo bloqueado.' },
+      'NAO_VERIFICADO':{ cls:'emergencia',icone:'?', label:'Não verificado', desc:'Sem retorno do financeiro.' },
+    };
+    const c = configs[status] || configs['NAO_VERIFICADO'];
+    document.getElementById('painel-financeiro').innerHTML = `
+      <div class="status-fin ${c.cls}" style="margin-bottom:12px">
+        <strong>${c.icone} ${c.label}</strong>
+      </div>
+      <p style="font-size:12px;color:var(--texto-2);margin-bottom:8px">${c.desc}</p>
+      ${data.valor_pendente && data.valor_pendente > 0
+        ? `<p style="font-size:12px;color:var(--amarelo);font-weight:600">Valor pendente: R$ ${parseFloat(data.valor_pendente/100).toFixed(2).replace('.',',')}</p>`
+        : ''}
+      ${status === 'BLOQUEADO'
+        ? `<p style="font-size:11px;color:var(--vermelho);margin-top:8px">Somente atendimento de emergência é permitido.</p>`
+        : ''}`;
+  }
+
+  // ── Alerta tipo emergência ────────────────────────────────────────────────────
+  function verificarEmergencia(valor) {
+    document.getElementById('alerta-emergencia').style.display =
+      valor === 'E' ? 'block' : 'none';
+  }
+
+  // ── Esconder carteirinha se PARTICULAR ───────────────────────────────────────
+  function toggleCarteirinha(valor) {
+    const campo = document.getElementById('campo-carteirinha');
+    campo.style.opacity = valor.trim().toUpperCase() === 'PARTICULAR' ? '0.4' : '1';
+    if (valor.trim().toUpperCase() === 'PARTICULAR')
+      document.getElementById('carteirinha').value = '';
+  }
+
+  // ── Contador de observação ───────────────────────────────────────────────────
+  document.getElementById('observacao').addEventListener('input', function() {
+    document.getElementById('obs-count').textContent = this.value.length;
+  });
+</script>
+{% endblock %}
