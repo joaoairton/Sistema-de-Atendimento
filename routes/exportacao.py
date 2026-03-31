@@ -3,7 +3,7 @@
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from datetime import date
-from config import get_db, get_cursor
+from app.config import get_db, get_cursor
 from services.arquivo_service import (
     exportar_prescricoes, exportar_aberturas, exportar_encerramentos
 )

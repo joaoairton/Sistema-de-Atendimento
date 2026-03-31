@@ -1,6 +1,11 @@
 # utils/formatters.py
 # Funções utilitárias de formatação de campos.
 # Usadas tanto nas rotas quanto nos serviços de exportação.
+import re
+
+def erro_xml(campo, mensagem):
+    """Gera uma string XML para o erro"""
+    return f"<error><field>{campo}</field><message>{mensagem}</message></error>"
 
 def pad_zero(valor, tamanho):
     """Preenche com zeros à esquerda até atingir o tamanho. Ex: 453 → "00000000000000000453" """
@@ -27,11 +32,18 @@ def formatar_valor_cents(valor):
 
 def limpar_cpf(valor):
     """Remove pontuação do CPF. Ex: 045.321.987-60 → 04532198760"""
-    return str(valor or "").replace(".", "").replace("-", "")
+    try:
+        return str(re.sub(r'[^0-9]', '', valor))
+    except Exception as e:
+        raise erro_xml(e)
+
 
 def limpar_telefone(valor):
     """Remove pontuação do telefone. Ex: (47) 9999-9999 → 4799999999"""
-    return str(valor or "").replace("(","").replace(")","").replace("-","").replace(" ","")
+    try:
+        return str(valor or "").replace("(","").replace(")","").replace("-","").replace(" ","")
+    except Exception as e:
+        raise erro_xml(e)
 
 def formatar_data(valor):
     """Formata data para AAMMDD. Aceita date ou string YYYY-MM-DD."""

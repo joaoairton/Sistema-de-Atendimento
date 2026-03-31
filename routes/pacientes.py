@@ -4,7 +4,7 @@
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 import psycopg2
-from config import get_db, get_cursor
+from app.config import get_db, get_cursor
 from utils.formatters import limpar_cpf, limpar_telefone
 
 pacientes_bp = Blueprint("pacientes", __name__)

@@ -4,7 +4,7 @@ routes/dashboard.py — Rota da pagina inicial.
 
 from flask import Blueprint, render_template
 from datetime import date
-from config import get_db, get_cursor
+from app.config import get_db, get_cursor
 
 bp = Blueprint("dashboard", __name__)
 

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<encerramentoDiario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xsi:noNamespaceSchemaLocation="hospital.xsd">
+    <cabecalho>
+        <tipoRegistro>H</tipoRegistro>
+        <data>260318</data>
+        <hora>143022</hora>
+        <versao>00001</versao>
+        <totalRegistros>2</totalRegistros>
+    </cabecalho>
+    <atendimentos>
+        <atendimento>
+            <id_atendimento>5001</id_atendimento>
+            <cpf_paciente>04532198760</cpf_paciente>
+            <data_encerramento>260318</data_encerramento>
+            <hora_encerramento>143022</hora_encerramento>
+            <tipo>E</tipo>
+            <crm_medico>CRM12345</crm_medico>
+            <cid_principal>J00</cid_principal>
+            <procedimento>CONSULTA</procedimento>
+            <quantidade_medicamentos>2</quantidade_medicamentos>
+            <valor_procedimentos_centavos>18000</valor_procedimentos_centavos>
+            <convenio>UNIMED</convenio>
+            <carteirinha>987654321</carteirinha>
+            <observacao>Paciente estável</observacao>
+        </atendimento>
+        <atendimento>
+            <id_atendimento>5002</id_atendimento>
+            <cpf_paciente>12345678901</cpf_paciente>
+            <data_encerramento>260318</data_encerramento>
+            <hora_encerramento>150010</hora_encerramento>
+            <tipo>U</tipo>
+            <cid_principal>I10</cid_principal>
+            <procedimento>EXAME_SANGUE</procedimento>
+            <quantidade_medicamentos>0</quantidade_medicamentos>
+            <valor_procedimentos_centavos>5000</valor_procedimentos_centavos>
+            <convenio>PARTICULAR</convenio>
+            <observacao>Encaminhado ao cardiologista</observacao>
+        </atendimento>
+    </atendimentos>
+    <trailer>
+        <tipoRegistro>T</tipoRegistro>
+        <totalRegistros>2</totalRegistros>
+        <somaValoresCentavos>23000</somaValoresCentavos>
+        <hashMD5>7F3B9C2A1D4E5F67890ABCDEF1234567</hashMD5>
+    </trailer>
+</encerramentoDiario>

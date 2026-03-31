@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<prescricao xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:noNamespaceSchemaLocation="hospital.xsd">
+    <id_prescricao>1001</id_prescricao>
+    <cpf_paciente>04532198760</cpf_paciente>
+    <data_prescricao>260318</data_prescricao>
+    <hora_prescricao>143022</hora_prescricao>
+    <crm_medico>CRM12345</crm_medico>
+    <codigo_medicamento>MED001</codigo_medicamento>
+    <quantidade>1500</quantidade>  <!-- 1.5 comprimidos -->
+    <unidade>COMP</unidade>
+    <observacao>Tomar após as refeições</observacao>
+</prescricao>

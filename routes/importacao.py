@@ -2,7 +2,7 @@
 # Rotas de importação dos arquivos recebidos do Estoque e do Financeiro.
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from config import get_db, get_cursor
+from app.config import get_db, get_cursor
 from services.importacao_service import (
     importar_retorno_estoque,
     importar_status_financeiro

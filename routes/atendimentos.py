@@ -3,7 +3,7 @@
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from datetime import date
-from config import get_db, get_cursor
+from app.config import get_db, get_cursor
 from utils.formatters import limpar_cpf
 from services.arquivo_service import gerar_encerramento
 

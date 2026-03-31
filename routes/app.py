@@ -3,7 +3,7 @@
 # Responsabilidade única: criar o app Flask, registrar os blueprints e iniciar.
 
 from flask import Flask, render_template
-from config import SECRET_KEY
+from app.config import SECRET_KEY
 from routes.pacientes    import pacientes_bp
 from routes.atendimentos import atendimentos_bp
 from routes.prescricoes  import prescricoes_bp
@@ -25,7 +25,7 @@ app.register_blueprint(importacao_bp)
 
 # Dashboard — mantido aqui por ser a rota raiz
 from datetime import date
-from config import get_db, get_cursor
+from app.config import get_db, get_cursor
 
 @app.route("/")
 def index():

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<retornoEstoque xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:noNamespaceSchemaLocation="hospital.xsd">
+    <retorno>
+        <id_prescricao>1001</id_prescricao>
+        <codigo_medicamento>MED001</codigo_medicamento>
+        <disponivel>1</disponivel>
+        <observacao>Disponível na farmácia</observacao>
+    </retorno>
+    <retorno>
+        <id_prescricao>1002</id_prescricao>
+        <codigo_medicamento>MED002</codigo_medicamento>
+        <disponivel>0</disponivel>
+        <observacao>Medicamento em falta</observacao>
+    </retorno>
+</retornoEstoque>

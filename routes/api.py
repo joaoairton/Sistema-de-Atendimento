@@ -3,7 +3,7 @@
 # Não renderizam HTML.
 
 from flask import Blueprint, jsonify
-from config import get_db, get_cursor
+from app.config import get_db, get_cursor
 from utils.formatters import limpar_cpf
 
 api_bp = Blueprint("api", __name__)
