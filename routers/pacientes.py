@@ -94,17 +94,15 @@ async def criar_paciente(paciente_data: PacienteCreate,  session: Session = Depe
         # Retorna erro em XML
         error_xml = dict_to_xml(
             {
-                "erro": {
-                    "codigo": "CPF_DUPLICADO",
-                    "mensagem": f"Paciente com CPF {paciente_data.cpf} já cadastrado"
-                }
+                "codigo": "CPF_DUPLICADO",
+                "mensagem": f"Paciente com CPF {paciente_data.cpf} já cadastrado"
             },
             root_name="erro"
         )
-        raise HTTPException(
-            status_code=HTTPStatus.BAD_REQUEST,
-            detail=error_xml,
-            headers={"Content-Type": "application/xml"}
+        return Response(
+            content=error_xml,
+            media_type="application/xml",
+            status_code=HTTPStatus.BAD_REQUEST
         )
     
     # Cria novo paciente
@@ -154,17 +152,15 @@ async def buscar_paciente_por_cpf(
     if len(cpf_limpo) != 11:
         error_xml = dict_to_xml(
             {
-                "erro": {
-                    "codigo": "CPF_INVALIDO",
-                    "mensagem": "CPF deve conter 11 dígitos numéricos!!!"
-                }
+                "codigo": "CPF_INVALIDO",
+                "mensagem": "CPF deve conter 11 dígitos numéricos!!!"   
             },
             root_name="erro"
         )
-        raise HTTPException(
+        return Response(
             status_code=HTTPStatus.BAD_REQUEST,
-            detail=error_xml,
-            headers={"Content-Type": "application/xml"}
+            content=error_xml,
+            media_type="application/xml",
         )
     
     paciente = session.scalar(
@@ -174,17 +170,15 @@ async def buscar_paciente_por_cpf(
     if not paciente:
         error_xml = dict_to_xml(
             {
-                "erro": {
-                    "codigo": "PACIENTE_NAO_ENCONTRADO",
-                    "mensagem": f"Paciente com CPF {cpf_limpo} não encontrado"
-                }
+                "codigo": "PACIENTE_NAO_ENCONTRADO",
+                "mensagem": f"Paciente com CPF {cpf_limpo} não encontrado"
             },
             root_name="erro"
         )
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND,
-            detail=error_xml,
-            headers={"Content-Type": "application/xml"}
+        return Response(
+            content=error_xml,
+            media_type="application/xml",
+            status_code=HTTPStatus.NOT_FOUND
         )
     
     paciente_dict = {
@@ -224,17 +218,15 @@ async def atualizar_paciente(
     if len(cpf_limpo_url) != 11:
         error_xml = dict_to_xml(
             {
-                "erro": {
-                    "codigo": "CPF_INVALIDO",
-                    "mensagem": "CPF na URL deve conter 11 dígitos numéricos"
-                }
+                "codigo": "CPF_INVALIDO",
+                "mensagem": "CPF na URL deve conter 11 dígitos numéricos"
             },
             root_name="erro"
         )
-        raise HTTPException(
+        return Response(
             status_code=HTTPStatus.BAD_REQUEST,
-            detail=error_xml,
-            headers={"Content-Type": "application/xml"}
+            content=error_xml,
+            media_type="application/xml"
         )
     
     paciente = session.scalar(
@@ -244,17 +236,15 @@ async def atualizar_paciente(
     if not paciente:
         error_xml = dict_to_xml(
             {
-                "erro": {
-                    "codigo": "PACIENTE_NAO_ENCONTRADO",
-                    "mensagem": f"Paciente com CPF {cpf_limpo_url} não encontrado"
-                }
+                "codigo": "PACIENTE_NAO_ENCONTRADO",
+                "mensagem": f"Paciente com CPF {cpf_limpo_url} não encontrado"
             },
             root_name="erro"
         )
-        raise HTTPException(
+        return Response(
             status_code=HTTPStatus.NOT_FOUND,
-            detail=error_xml,
-            headers={"Content-Type": "application/xml"}
+            content=error_xml,
+            media_type="application/xml"
         )
     
     # Verifica se o novo CPF (se alterado) já existe
@@ -265,17 +255,15 @@ async def atualizar_paciente(
         if paciente_existente:
             error_xml = dict_to_xml(
                 {
-                    "erro": {
-                        "codigo": "CPF_DUPLICADO",
-                        "mensagem": f"CPF {paciente_data.cpf} já está cadastrado"
-                    }
+                    "codigo": "CPF_DUPLICADO",
+                    "mensagem": f"CPF {paciente_data.cpf} já está cadastrado"
                 },
                 root_name="erro"
             )
-            raise HTTPException(
+            return Response(
                 status_code=HTTPStatus.BAD_REQUEST,
-                detail=error_xml,
-                headers={"Content-Type": "application/xml"}
+                content=error_xml,
+                media_type="application/xml"
             )
     
     # Atualiza os dados
@@ -317,17 +305,15 @@ async def deletar_paciente(
     if len(cpf_limpo) != 11:
         error_xml = dict_to_xml(
             {
-                "erro": {
-                    "codigo": "CPF_INVALIDO",
-                    "mensagem": "CPF deve conter 11 dígitos numéricos"
-                }
+                "codigo": "CPF_INVALIDO",
+                "mensagem": "CPF deve conter 11 dígitos numéricos"
             },
             root_name="erro"
         )
-        raise HTTPException(
+        return Response(
             status_code=HTTPStatus.BAD_REQUEST,
-            detail=error_xml,
-            headers={"Content-Type": "application/xml"}
+            content=error_xml,
+            media_type="application/xml"
         )
     
     paciente = session.scalar(
@@ -337,17 +323,15 @@ async def deletar_paciente(
     if not paciente:
         error_xml = dict_to_xml(
             {
-                "erro": {
-                    "codigo": "PACIENTE_NAO_ENCONTRADO",
-                    "mensagem": f"Paciente com CPF {cpf_limpo} não encontrado"
-                }
+                "codigo": "PACIENTE_NAO_ENCONTRADO",
+                "mensagem": f"Paciente com CPF {cpf_limpo} não encontrado"
             },
             root_name="erro"
         )
-        raise HTTPException(
+        return Response(
             status_code=HTTPStatus.NOT_FOUND,
-            detail=error_xml,
-            headers={"Content-Type": "application/xml"}
+            content=error_xml,
+            media_type="application/xml"
         )
     
     session.delete(paciente)
@@ -372,10 +356,17 @@ async def listar_atendimentos_por_paciente(cpf: str, session: Session = Depends(
         cpf_limpo = limpar_cpf(cpf)
     except ValueError as e:
         error_xml = dict_to_xml(
-            {"erro": {"codigo": "CPF_INVALIDO", "mensagem": str(e)}},
+            {
+                "codigo": "CPF_INVALIDO",
+                "mensagem": str(e)
+             },
             root_name="erro"
         )
-        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST, detail=error_xml, headers={"Content-Type": "application/xml"})
+        return Response(
+            status_code=HTTPStatus.BAD_REQUEST, 
+            content=error_xml,
+            media_type="application/xml"
+        )
 
     # Verifica se paciente existe
     verificar_paciente_existe(session, cpf_limpo)

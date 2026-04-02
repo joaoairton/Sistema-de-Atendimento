@@ -20,8 +20,11 @@ dicttoxml = "^1.7.16"
 alembic = "^1.18.4"
 psycopg = {extras = ["binary"], version = "^3.3.3"}
 
+[tool.poetry.group.dev.dependencies]
+sqlalchemy-utils = "^0.42.1"
+
 [tool.taskipy.tasks]
-test = "pytest tests/test_routes.py -v"
+test = "pytest tests/test_paciente.py -v"
 
 [build-system]
 requires = ["poetry-core"]
