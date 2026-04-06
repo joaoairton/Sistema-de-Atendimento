@@ -26,7 +26,8 @@ def verificar_paciente_existe(session: Session, cpf: str):
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
             detail=dict_to_xml(
-                {"erro": {"codigo": "PACIENTE_NAO_ENCONTRADO", "mensagem": f"Paciente com CPF {cpf} não encontrado"}},
+                {"codigo": "PACIENTE_NAO_ENCONTRADO", 
+                "mensagem": f"Paciente com CPF {cpf} não encontrado"},
                 root_name="erro"
             ),
             headers={"Content-Type": "application/xml"}

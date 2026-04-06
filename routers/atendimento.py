@@ -13,6 +13,11 @@ from utils.formatters import limpar_cpf
 
 
 router = APIRouter(prefix='/atendimentos', tags=['atendimentos'])
+def validar_crm(crm: str) -> bool:
+    """Valida formato do CRM: 2 letras (UF) seguido de números"""
+    import re
+    pattern = r'^[A-Z]{2}\d+$'
+    return bool(re.match(pattern, crm))
 
 def verificar_paciente_existe(session: Session, cpf: str):
     paciente = session.scalar(select(Paciente).where(Paciente.cpf == cpf))      
@@ -54,37 +59,169 @@ async def criar_atendimento(
     dados: AtendimentoCreate,
     session: Session = Depends(get_session)
 ):
-    """Cria um novo atendimento"""
-    # Valida CPF
-    cpf_limpo = limpar_cpf(dados.cpf_paciente)
-    verificar_paciente_existe(session, cpf_limpo)
-
-    # Cria objeto
-    novo = Atendimento(
-        cpf_paciente=cpf_limpo,
-        tipo=dados.tipo,
-        crm_medico=dados.crm_medico,
-        especialidade=dados.especialidade,
-        convenio=dados.convenio,
-        carteirinha=dados.carteirinha,
-        status=dados.status or "ABERTO",
-        observacao=dados.observacao,
-        data_encerramento=dados.data_encerramento,
-        hora_encerramento=dados.hora_encerramento,
-        cid_principal=dados.cid_principal,
-        procedimento=dados.procedimento,
-        qtd_medicamentos=dados.qtd_medicamentos,
-        valor_procedimentos=dados.valor_procedimentos,
-        # Preenche data/hora abertura automaticamente
-        data_abertura=date.today(),
-        hora_abertura=datetime.now().time()
+    """Cria um novo atendimento e retorna os dados em XML"""
+    
+    # 1. Valida e limpa o CPF
+    try:
+        cpf_limpo = limpar_cpf(dados.cpf_paciente)
+    except ValueError as e:
+        error_xml = dict_to_xml(
+            {
+                "codigo": "CPF_INVALIDO",
+                "mensagem": str(e)
+            },
+            root_name="erro"
+        )
+        return Response(
+            content=error_xml,
+            media_type="application/xml",
+            status_code=HTTPStatus.BAD_REQUEST
+        )
+    # 2. Verifica se o paciente existe
+    paciente = session.scalar(
+        select(Paciente).where(Paciente.cpf == cpf_limpo)
     )
-    session.add(novo)
-    session.commit()
-    session.refresh(novo)
-
-    xml = dict_to_xml({"atendimento": atendimento_to_dict(novo)}, root_name="atendimento_criado")
-    return Response(content=xml, media_type="application/xml", status_code=HTTPStatus.CREATED)
+    
+    if not paciente:
+        error_xml = dict_to_xml(
+            {
+                "codigo": "PACIENTE_NAO_ENCONTRADO",
+                "mensagem": f"Paciente com CPF {cpf_limpo} não encontrado"
+            },
+            root_name="erro"
+        )
+        return Response(
+            content=error_xml,
+            media_type="application/xml",
+            status_code=HTTPStatus.NOT_FOUND
+        )
+    
+    # 3. Valida o status (se fornecido)
+    if dados.status and dados.status not in ['ABERTO', 'EM_ATENDIMENTO', 'ENCERRADO', 'CANCELADO']:
+        error_xml = dict_to_xml(
+            {
+                "codigo": "STATUS_INVALIDO",
+                "mensagem": f"Status inválido: {dados.status}. Valores permitidos: ABERTO, EM_ATENDIMENTO, ENCERRADO, CANCELADO"
+            },
+            root_name="erro"
+        )
+        return Response(
+            content=error_xml,
+            media_type="application/xml",
+            status_code=HTTPStatus.BAD_REQUEST
+        )
+    
+    # 4. Valida CRM do médico (se fornecido)
+    if dados.crm_medico and not validar_crm(dados.crm_medico):
+        error_xml = dict_to_xml(
+            {
+                "codigo": "CRM_INVALIDO",
+                "mensagem": "CRM deve conter o formato: UF seguido de números (ex: SP123456)"
+            },
+            root_name="erro"
+        )
+        return Response(
+            content=error_xml,
+            media_type="application/xml",
+            status_code=HTTPStatus.BAD_REQUEST
+        )
+    
+    # 5. Valida valor de procedimentos (não pode ser negativo)
+    if dados.valor_procedimentos is not None and dados.valor_procedimentos < 0:
+        error_xml = dict_to_xml(
+            {
+                "codigo": "VALOR_INVALIDO",
+                "mensagem": "Valor de procedimentos não pode ser negativo"
+            },
+            root_name="erro"
+        )
+        return Response(
+            content=error_xml,
+            media_type="application/xml",
+            status_code=HTTPStatus.BAD_REQUEST
+        )
+    
+    # 6. Valida quantidade de medicamentos (não pode ser negativa)
+    if dados.qtd_medicamentos is not None and dados.qtd_medicamentos < 0:
+        error_xml = dict_to_xml(
+            {
+                "codigo": "QUANTIDADE_INVALIDA",
+                "mensagem": "Quantidade de medicamentos não pode ser negativa"
+            },
+            root_name="erro"
+        )
+        return Response(
+            content=error_xml,
+            media_type="application/xml",
+            status_code=HTTPStatus.BAD_REQUEST
+        )
+    
+    # 7. Valida data e hora de encerramento (se um for fornecido, o outro também deve ser)
+    if (dados.data_encerramento and not dados.hora_encerramento) or \
+       (not dados.data_encerramento and dados.hora_encerramento):
+        error_xml = dict_to_xml(
+            {
+                "codigo": "DATA_HORA_INCOMPLETA",
+                "mensagem": "Data e hora de encerramento devem ser fornecidas juntas"
+            },
+            root_name="erro"
+        )
+        return Response(
+            content=error_xml,
+            media_type="application/xml",
+            status_code=HTTPStatus.BAD_REQUEST
+        )
+    
+    # Cria objeto
+    try:
+        novo = Atendimento(
+            cpf_paciente=cpf_limpo,
+            tipo=dados.tipo,
+            crm_medico=dados.crm_medico,
+            especialidade=dados.especialidade,
+            convenio=dados.convenio,
+            carteirinha=dados.carteirinha,
+            status=dados.status or "ABERTO",
+            observacao=dados.observacao,
+            data_encerramento=dados.data_encerramento,
+            hora_encerramento=dados.hora_encerramento,
+            cid_principal=dados.cid_principal,
+            procedimento=dados.procedimento,
+            qtd_medicamentos=dados.qtd_medicamentos,
+            valor_procedimentos=dados.valor_procedimentos,
+            data_abertura=date.today(),
+            hora_abertura=datetime.now().time()
+        )
+        
+        session.add(novo)
+        session.commit()
+        session.refresh(novo)
+        
+    except Exception as e:
+        session.rollback()
+        error_xml = dict_to_xml(
+            {
+                "codigo": "ERRO_INTERNO",
+                "mensagem": f"Erro ao criar atendimento: {str(e)}"
+            },
+            root_name="erro"
+        )
+        return Response(
+            content=error_xml,
+            media_type="application/xml",
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR
+        )
+    
+    # Retorna o atendimento criado em XML
+    xml = dict_to_xml(
+        {"atendimento": atendimento_to_dict(novo)},
+        root_name="atendimento_criado"
+    )
+    return Response(
+        content=xml,
+        media_type="application/xml",
+        status_code=HTTPStatus.CREATED
+    )
 
 @router.put("/{id_atendimento}", response_class=Response)
 async def atualizar_atendimento(
