@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Novo Paciente{% endblock %}
+{% block content %}
+<h1>Novo Paciente</h1>
+<form method="post">
+  <label>CPF * <input name="cpf" placeholder="000.000.000-00" required maxlength="14"></label>
+  <label>Nome * <input name="nome" required maxlength="100"></label>
+  <label>Data de nascimento <input type="date" name="data_nasc"></label>
+  <label>Telefone <input name="telefone" maxlength="20"></label>
+  <label>E-mail <input type="email" name="email" maxlength="100"></label>
+  <button type="submit">Salvar</button>
+  <a href="/pacientes" class="btn" style="margin-left:10px">Cancelar</a>
+</form>
+{% endblock %}

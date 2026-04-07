@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Atendimento #{{ atend.id }}{% endblock %}
+{% block content %}
+<h1>Atendimento #{{ atend.id }} — {{ atend.nome_paciente }}</h1>
+
+<table>
+  <tr><th>CPF</th><td>{{ atend.cpf_paciente[:3] }}.{{ atend.cpf_paciente[3:6] }}.{{ atend.cpf_paciente[6:9] }}-{{ atend.cpf_paciente[9:] }}</td></tr>
+  <tr><th>Tipo</th><td>{{ atend.tipo }}</td></tr>
+  <tr><th>Status</th><td>{{ atend.status }}</td></tr>
+  <tr><th>CRM médico</th><td>{{ atend.crm_medico or '—' }}</td></tr>
+  <tr><th>Convênio</th><td>{{ atend.convenio or 'PARTICULAR' }}</td></tr>
+  <tr><th>Abertura</th><td>{{ atend.data_abertura.strftime('%d/%m/%Y') }} {{ atend.hora_abertura.strftime('%H:%M:%S') }}</td></tr>
+  {% if atend.status == 'FINALIZADO' %}
+  <tr><th>Encerramento</th><td>{{ atend.data_finalizacao.strftime('%d/%m/%Y') if atend.data_finalizacao else '—' }} {{ atend.hora_finalizacao.strftime('%H:%M:%S') if atend.hora_finalizacao else '' }}</td></tr>
+  <tr><th>CID</th><td>{{ atend.cid or '—' }}</td></tr>
+  <tr><th>TUSS</th><td>{{ atend.codigo_tuss or '—' }}</td></tr>
+  <tr><th>Valor total</th><td>R$ {{ '%.2f'|format(atend.valor_total or 0) }}</td></tr>
+  {% endif %}
+</table>
+
+{% if atend.status == 'ABERTO' %}
+  <p style="margin-top:15px">
+    <a href="/atendimentos/{{ atend.id }}/prescricao" class="btn">+ Nova prescrição</a>
+
+    {% if pendentes_reserva %}
+      <span style="margin-left:10px;color:#856404;background:#fff3cd;border:1px solid #ffc107;padding:6px 12px;font-size:13px">
+        ⚠ {{ pendentes_reserva|length }} prescrição(ões) aguardando reserva — confirme antes de finalizar
+      </span>
+    {% else %}
+      <a href="/atendimentos/{{ atend.id }}/finalizar" class="btn btn-danger" style="margin-left:10px">Finalizar atendimento</a>
+    {% endif %}
+  </p>
+{% endif %}
+
+<h2>Prescrições ({{ prescricoes|length }})</h2>
+{% if prescricoes %}
+<table>
+  <tr>
+    <th>ID</th><th>Medicamento</th><th>Qtd</th><th>Unidade</th>
+    <th>Consulta Estoque</th><th>Reserva</th><th>Data</th>
+  </tr>
+  {% for p in prescricoes %}
+  <tr>
+    <td>{{ p.id }}</td>
+    <td>{{ p.codigo_med }}</td>
+    <td>{{ p.quantidade }}</td>
+    <td>{{ p.unidade.strip() }}</td>
+
+    {# Coluna: resultado da consulta ao Estoque #}
+    <td>
+      {% if p.disponivel is none %}
+        <span class="badge-info">Aguardando resposta</span>
+      {% elif p.disponivel %}
+        <span class="badge-ok">Disponível</span>
+      {% else %}
+        <span class="badge-erro">Indisponível</span>
+      {% endif %}
+    </td>
+
+    {# Coluna: reserva #}
+    <td>
+      {% if p.disponivel is none %}
+        —
+      {% elif not p.disponivel %}
+        <span style="color:#666;font-size:12px">N/A</span>
+      {% elif p.reserva_confirmada %}
+        <span class="badge-ok">Confirmada</span>
+      {% else %}
+        {# Disponível mas reserva ainda não confirmada — mostra botão #}
+        {% if atend.status == 'ABERTO' %}
+        <form method="post" action="/prescricoes/{{ p.id }}/reservar" style="margin:0">
+          <button type="submit" style="background:#2e75b6;color:#fff;border:none;padding:3px 10px;cursor:pointer;font-size:12px;font-family:monospace">
+            Confirmar reserva
+          </button>
+        </form>
+        {% else %}
+          <span class="badge-erro">Não confirmada</span>
+        {% endif %}
+      {% endif %}
+    </td>
+
+    <td>{{ p.data_prescricao.strftime('%d/%m/%Y') }} {{ p.hora_prescricao.strftime('%H:%M') }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}
+<p>Nenhuma prescrição.</p>
+{% endif %}
+
+<a href="/atendimentos" class="btn" style="margin-top:15px">← Voltar</a>
+{% endblock %}

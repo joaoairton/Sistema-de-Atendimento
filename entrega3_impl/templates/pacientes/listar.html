@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Pacientes{% endblock %}
+{% block content %}
+<h1>Pacientes</h1>
+<a href="/pacientes/novo" class="btn">+ Novo paciente</a>
+<table style="margin-top:15px">
+  <tr><th>CPF</th><th>Nome</th><th>Nascimento</th><th>Telefone</th></tr>
+  {% for p in pacientes %}
+  <tr>
+    <td>{{ p.cpf[:3] }}.{{ p.cpf[3:6] }}.{{ p.cpf[6:9] }}-{{ p.cpf[9:] }}</td>
+    <td>{{ p.nome }}</td>
+    <td>{{ p.data_nasc.strftime('%d/%m/%Y') if p.data_nasc else '—' }}</td>
+    <td>{{ p.telefone or '—' }}</td>
+  </tr>
+  {% else %}
+  <tr><td colspan="4">Nenhum paciente cadastrado.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

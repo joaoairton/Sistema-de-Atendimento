@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}XMLs Gerados{% endblock %}
+{% block content %}
+<h1>XMLs Gerados</h1>
+<p>Arquivos em <code>xml_gerados/</code> — gerados automaticamente ao registrar prescrição ou finalizar atendimento.</p>
+<table>
+  <tr><th>Arquivo</th><th>Tipo</th><th>Tamanho</th><th>Ações</th></tr>
+  {% for x in xmls %}
+  <tr>
+    <td style="font-size:12px">{{ x.nome }}</td>
+    <td><span class="badge-info">{{ x.tipo }}</span></td>
+    <td>{{ x.tamanho }} bytes</td>
+    <td>
+      <a href="/xmls/{{ x.nome }}">ver</a> |
+      <a href="/xmls/{{ x.nome }}/download">download</a>
+    </td>
+  </tr>
+  {% else %}
+  <tr><td colspan="4">Nenhum XML gerado ainda. Registre uma prescrição ou finalize um atendimento.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

@@ -1,0 +1,31 @@
+services:
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB:       db_atendimento_xml
+      POSTGRES_USER:     postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./banco.sql:/docker-entrypoint-initdb.d/banco.sql
+    ports:
+      - "5432:5432"
+
+  app:
+    build: .
+    ports:
+      - "5002:5002"
+    environment:
+      DB_HOST:     db
+      DB_NAME:     db_atendimento_xml
+      DB_USER:     postgres
+      DB_PASSWORD: postgres
+    depends_on:
+      - db
+    volumes:
+      - ./xml_gerados:/app/xml_gerados
+      - ./xml_entrada:/app/xml_entrada
+
+volumes:
+  postgres_data:

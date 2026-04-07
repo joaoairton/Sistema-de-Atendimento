@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Log #{{ log.id }}{% endblock %}
+{% block content %}
+<h1>Log de Integração #{{ log.id }}</h1>
+<table>
+  <tr><th>Entrega</th><td>{{ log.entrega }}</td></tr>
+  <tr><th>Tecnologia</th><td>{{ log.tecnologia }}</td></tr>
+  <tr><th>Direção</th><td>{{ log.direcao }}</td></tr>
+  <tr><th>Operação</th><td>{{ log.operacao }}</td></tr>
+  <tr><th>Origem → Destino</th><td>{{ log.sistema_origem }} → {{ log.sistema_destino }}</td></tr>
+  <tr><th>Schema usado</th><td>{{ log.schema_usado or '—' }}</td></tr>
+  <tr><th>Payload válido</th><td>{% if log.payload_valido %}<span class="badge-ok">SIM</span>{% elif log.payload_valido is not none %}<span class="badge-erro">NÃO</span>{% else %}—{% endif %}</td></tr>
+  <tr><th>Status</th><td>{{ log.status }}</td></tr>
+  <tr><th>Criado em</th><td>{{ log.criado_em.strftime('%d/%m/%Y %H:%M:%S') }}</td></tr>
+  {% if log.erro_validacao %}
+  <tr><th>Erro validação</th><td style="color:red">{{ log.erro_validacao }}</td></tr>
+  {% endif %}
+  {% if log.id_atendimento %}
+  <tr><th>Atendimento</th><td><a href="/atendimentos/{{ log.id_atendimento }}">#{{ log.id_atendimento }}</a></td></tr>
+  {% endif %}
+  {% if log.id_prescricao %}
+  <tr><th>Prescrição</th><td>#{{ log.id_prescricao }}</td></tr>
+  {% endif %}
+</table>
+{% if log.payload_saida %}
+<h2>Payload enviado</h2>
+<pre>{{ log.payload_saida }}</pre>
+{% endif %}
+{% if log.payload_entrada %}
+<h2>Payload recebido</h2>
+<pre>{{ log.payload_entrada }}</pre>
+{% endif %}
+<a href="/logs/{{ log.id }}/download" class="btn">Download payload</a>
+<a href="/logs" class="btn" style="margin-left:10px">← Voltar</a>
+{% endblock %}

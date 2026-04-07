@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Novo Atendimento{% endblock %}
+{% block content %}
+<h1>Novo Atendimento</h1>
+<p>O atendimento é registrado internamente. Não gera XML de abertura.<br>
+XMLs são gerados apenas na prescrição (→ Estoque) e na finalização (→ Financeiro).</p>
+<form method="post">
+  <fieldset>
+    <legend>Paciente</legend>
+    <label>CPF *
+      <input name="cpf" id="cpf" placeholder="000.000.000-00" required maxlength="14"
+             oninput="buscarPaciente(this.value)">
+    </label>
+    <div id="info-paciente" style="margin-top:6px;font-size:13px;color:#555"></div>
+  </fieldset>
+  <fieldset>
+    <legend>Dados do atendimento</legend>
+    <label>Tipo *
+      <select name="tipo" required>
+        <option value="CONSULTA">Consulta</option>
+        <option value="RETORNO">Retorno</option>
+        <option value="INTERNACAO">Internação</option>
+        <option value="EMERGENCIA">Emergência</option>
+      </select>
+    </label>
+    <label>CRM do médico <input name="crm" maxlength="15"></label>
+    <label>Convênio <input name="convenio" maxlength="60" placeholder="Deixe vazio para PARTICULAR"></label>
+    <label>Carteirinha <input name="carteirinha" maxlength="30"></label>
+  </fieldset>
+  <button type="submit">Abrir atendimento</button>
+  <a href="/atendimentos" class="btn" style="margin-left:10px">Cancelar</a>
+</form>
+<script>
+function buscarPaciente(val) {
+  const cpf = val.replace(/\D/g, '');
+  if (cpf.length !== 11) { document.getElementById('info-paciente').innerHTML = ''; return; }
+  fetch('/api/paciente/' + cpf)
+    .then(r => r.json())
+    .then(d => {
+      const el = document.getElementById('info-paciente');
+      if (!d.encontrado) { el.innerHTML = '<span style="color:red">Paciente não encontrado.</span>'; return; }
+      const sf = d.status_financeiro;
+      const cor = sf === 'BLOQUEADO' ? 'red' : sf === 'PENDENTE' ? 'orange' : 'green';
+      el.innerHTML = '<strong>' + d.nome + '</strong> — Status financeiro: <span style="color:' + cor + '">' + sf + '</span>';
+    });
+}
+</script>
+{% endblock %}

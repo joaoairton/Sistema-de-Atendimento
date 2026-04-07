@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Finalizar Atendimento #{{ atend.id }}{% endblock %}
+{% block content %}
+<h1>Finalizar Atendimento #{{ atend.id }}</h1>
+<p><strong>Paciente:</strong> {{ atend.nome_paciente }} &nbsp;|&nbsp;
+   <strong>Tipo:</strong> {{ atend.tipo }} &nbsp;|&nbsp;
+   <strong>Prescrições:</strong> {{ prescricoes|length }}</p>
+<p style="color:red;font-weight:bold">Esta ação é irreversível. Ao confirmar, o XML de finalização será gerado e enviado ao Financeiro.</p>
+<form method="post">
+  <fieldset>
+    <legend>Diagnóstico e procedimento</legend>
+    <label>CID-10 * <input name="cid" required maxlength="10" placeholder="Ex: I10"></label>
+    <label>Código TUSS * <input name="codigo_tuss" required maxlength="20" placeholder="Ex: 30601039"></label>
+  </fieldset>
+  <fieldset>
+    <legend>Faturamento</legend>
+    <label>Valor total (R$) * <input name="valor_total" type="number" step="0.01" min="0" required placeholder="0.00"></label>
+  </fieldset>
+  <label>Observações clínicas
+    <textarea name="observacoes" rows="3" maxlength="1000"></textarea>
+  </label>
+  <button type="submit" class="btn btn-danger" style="margin-top:15px">Confirmar finalização e gerar XML</button>
+  <a href="/atendimentos/{{ atend.id }}" class="btn" style="margin-left:10px">Cancelar</a>
+</form>
+{% endblock %}

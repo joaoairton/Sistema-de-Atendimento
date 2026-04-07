@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Atendimentos{% endblock %}
+{% block content %}
+<h1>Atendimentos</h1>
+<a href="/atendimentos/novo" class="btn">+ Novo atendimento</a>
+<table style="margin-top:15px">
+  <tr><th>ID</th><th>Paciente</th><th>Tipo</th><th>Status</th><th>Data</th><th>Ações</th></tr>
+  {% for a in atendimentos %}
+  <tr>
+    <td>{{ a.id }}</td>
+    <td>{{ a.nome_paciente }}</td>
+    <td>{{ a.tipo }}</td>
+    <td>{% if a.status == 'ABERTO' %}<span class="badge-ok">ABERTO</span>{% else %}<span class="badge-info">FINALIZADO</span>{% endif %}</td>
+    <td>{{ a.data_abertura.strftime('%d/%m/%Y') }}</td>
+    <td>
+      <a href="/atendimentos/{{ a.id }}">ver</a>
+      {% if a.status == 'ABERTO' %}
+        | <a href="/atendimentos/{{ a.id }}/prescricao">prescrição</a>
+        | <a href="/atendimentos/{{ a.id }}/finalizar">finalizar</a>
+      {% endif %}
+    </td>
+  </tr>
+  {% else %}
+  <tr><td colspan="6">Nenhum atendimento.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

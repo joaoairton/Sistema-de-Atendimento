@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  prescricao.xsd
+  Schema formal da integração Atendimento → Estoque
+  Versão: 1.0 | UNIAVAN 2026
+-->
+<xs:schema
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:tns="http://uniavan.edu.br/interop/prescricao"
+  targetNamespace="http://uniavan.edu.br/interop/prescricao"
+  elementFormDefault="qualified"
+  version="1.0">
+
+  <!-- ============================================================
+       TIPOS SIMPLES — restrições sobre tipos primitivos
+       ============================================================ -->
+
+  <!-- CPF: exatamente 11 dígitos numéricos -->
+  <xs:simpleType name="TipoCPF">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="\d{11}"/>
+      <xs:length value="11"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- CRM: formato alfanumérico, até 15 caracteres -->
+  <xs:simpleType name="TipoCRM">
+    <xs:restriction base="xs:string">
+      <xs:minLength value="1"/>
+      <xs:maxLength value="15"/>
+      <xs:pattern value="[A-Z0-9]+"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- Código de medicamento: inteiro positivo -->
+  <xs:simpleType name="TipoCodigoMedicamento">
+    <xs:restriction base="xs:positiveInteger"/>
+  </xs:simpleType>
+
+  <!-- Quantidade: decimal positivo com até 3 casas (ex: 1.500) -->
+  <xs:simpleType name="TipoQuantidade">
+    <xs:restriction base="xs:decimal">
+      <xs:minExclusive value="0"/>
+      <xs:totalDigits value="8"/>
+      <xs:fractionDigits value="3"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- Unidade de medida: enumeração fechada -->
+  <xs:simpleType name="TipoUnidadeMedida">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="COMP"/>
+      <xs:enumeration value="ML"/>
+      <xs:enumeration value="MG"/>
+      <xs:enumeration value="UN"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- Versão do schema: formato N.N -->
+  <xs:simpleType name="TipoVersao">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="\d+\.\d+"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- Identificador de sistema -->
+  <xs:simpleType name="TipoSistema">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="ATENDIMENTO"/>
+      <xs:enumeration value="ESTOQUE"/>
+      <xs:enumeration value="FINANCEIRO"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- Instruções: texto livre, até 500 caracteres -->
+  <xs:simpleType name="TipoInstrucoes">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="500"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+
+  <!-- ============================================================
+       TIPOS COMPLEXOS — estruturas compostas
+       ============================================================ -->
+
+  <!-- Cabeçalho de controle presente em todas as integrações -->
+  <xs:complexType name="TipoCabecalho">
+    <xs:sequence>
+      <xs:element name="sistemaOrigem"  type="tns:TipoSistema"/>
+      <xs:element name="sistemaDestino" type="tns:TipoSistema"/>
+      <xs:element name="dataGeracao"    type="xs:date"/>
+      <xs:element name="horaGeracao"    type="xs:time"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- Identificação resumida do paciente (apenas CPF nesta integração) -->
+  <xs:complexType name="TipoPacientePrescricao">
+    <xs:sequence>
+      <xs:element name="cpf" type="tns:TipoCPF"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- Identificação do médico -->
+  <xs:complexType name="TipoMedico">
+    <xs:sequence>
+      <xs:element name="crm" type="tns:TipoCRM"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- Dados do medicamento prescrito -->
+  <xs:complexType name="TipoMedicamento">
+    <xs:sequence>
+      <xs:element name="codigo"    type="tns:TipoCodigoMedicamento"/>
+      <xs:element name="quantidade" type="tns:TipoQuantidade"/>
+      <xs:element name="unidade"   type="tns:TipoUnidadeMedida"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- Data e hora da prescrição -->
+  <xs:complexType name="TipoDataHora">
+    <xs:sequence>
+      <xs:element name="data" type="xs:date"/>
+      <xs:element name="hora" type="xs:time"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- Dados principais da prescrição -->
+  <xs:complexType name="TipoDadosPrescricao">
+    <xs:sequence>
+      <xs:element name="idPrescricao"       type="xs:positiveInteger"/>
+      <xs:element name="idAtendimento"      type="xs:positiveInteger"/>
+      <xs:element name="paciente"           type="tns:TipoPacientePrescricao"/>
+      <xs:element name="medico"             type="tns:TipoMedico"/>
+      <xs:element name="medicamento"        type="tns:TipoMedicamento"/>
+      <xs:element name="instrucoes"         type="tns:TipoInstrucoes" minOccurs="0"/>
+      <xs:element name="dataHoraPrescricao" type="tns:TipoDataHora"/>
+    </xs:sequence>
+  </xs:complexType>
+
+
+  <!-- ============================================================
+       ELEMENTO RAIZ
+       ============================================================ -->
+
+  <xs:element name="prescricao">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="cabecalho" type="tns:TipoCabecalho"/>
+        <xs:element name="dados"     type="tns:TipoDadosPrescricao"/>
+      </xs:sequence>
+      <xs:attribute name="versao" type="tns:TipoVersao" use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>

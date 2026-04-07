@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Entrega 3 XML{% endblock %}
+{% block content %}
+<h1>Entrega 3 — Integração XML</h1>
+<p><strong>Banco:</strong> db_atendimento_xml &nbsp;|&nbsp; <strong>Porta:</strong> 5002</p>
+<p>2 integrações XML: Prescrição → Estoque &nbsp;|&nbsp; Finalização → Financeiro</p>
+
+<h2>Ações rápidas</h2>
+<a href="/pacientes/novo" class="btn">+ Cadastrar paciente</a>
+<a href="/atendimentos/novo" class="btn" style="margin-left:8px">+ Abrir atendimento</a>
+<a href="/importar" class="btn" style="margin-left:8px">Importar XML externo</a>
+<a href="/xmls" class="btn" style="margin-left:8px">Ver XMLs gerados</a>
+
+<h2>Últimos atendimentos</h2>
+{% set atendimentos = [] %}
+<p><a href="/atendimentos">Ver todos os atendimentos →</a></p>
+{% endblock %}

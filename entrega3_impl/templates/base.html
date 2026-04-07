@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}Entrega 3 — XML{% endblock %}</title>
+  <style>
+    body { font-family: monospace; max-width: 960px; margin: 20px auto; padding: 0 20px; }
+    nav  { background: #1a1a2e; padding: 10px; margin-bottom: 20px; }
+    nav a { color: #fff; text-decoration: none; margin-right: 20px; font-size: 14px; }
+    nav a:hover { text-decoration: underline; }
+    h1 { color: #1a1a2e; border-bottom: 2px solid #1a1a2e; padding-bottom: 6px; }
+    h2 { color: #2e75b6; }
+    table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+    th, td { border: 1px solid #ccc; padding: 6px 10px; text-align: left; font-size: 13px; }
+    th { background: #1a1a2e; color: #fff; }
+    tr:nth-child(even) { background: #f5f5f5; }
+    .msg-ok    { background: #d4edda; border: 1px solid #28a745; padding: 8px; margin: 10px 0; }
+    .msg-erro  { background: #f8d7da; border: 1px solid #dc3545; padding: 8px; margin: 10px 0; }
+    .msg-aviso { background: #fff3cd; border: 1px solid #ffc107; padding: 8px; margin: 10px 0; }
+    label { display: block; margin-top: 10px; font-weight: bold; }
+    input, select, textarea { width: 100%; padding: 6px; margin-top: 4px; box-sizing: border-box; font-family: monospace; }
+    button, .btn { background: #1a1a2e; color: #fff; border: none; padding: 8px 16px; cursor: pointer; font-family: monospace; font-size: 14px; text-decoration: none; display: inline-block; margin-top: 10px; }
+    .btn-danger { background: #dc3545; }
+    .badge-ok    { background: #28a745; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+    .badge-erro  { background: #dc3545; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+    .badge-info  { background: #2e75b6; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+    pre { background: #f5f5f5; border: 1px solid #ccc; padding: 10px; overflow-x: auto; font-size: 12px; }
+    fieldset { border: 1px solid #ccc; padding: 10px; margin-bottom: 15px; }
+    legend { font-weight: bold; color: #1a1a2e; }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="/">Dashboard</a>
+  <a href="/pacientes">Pacientes</a>
+  <a href="/atendimentos">Atendimentos</a>
+  <a href="/xmls">XMLs Gerados</a>
+  <a href="/importar">Importar XML</a>
+</nav>
+{% with msgs = get_flashed_messages() %}
+  {% for tipo, txt in msgs %}
+    <div class="msg-{{ tipo }}">{{ txt }}</div>
+  {% endfor %}
+{% endwith %}
+{% block content %}{% endblock %}
+</body>
+</html>

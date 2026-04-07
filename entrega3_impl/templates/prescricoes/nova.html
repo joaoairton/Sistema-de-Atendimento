@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Nova Prescrição{% endblock %}
+{% block content %}
+<h1>Nova Prescrição — Atendimento #{{ atend.id }}</h1>
+<p><strong>Paciente:</strong> {{ atend.nome_paciente }}</p>
+
+<div style="background:#e8f0fe;border-left:4px solid #2e75b6;padding:10px;margin-bottom:15px;font-size:13px">
+  <strong>Fluxo com o Estoque:</strong><br>
+  1. Registre a prescrição → sistema gera XML de <strong>consulta</strong> ao Estoque.<br>
+  2. Importe a resposta do Estoque em <a href="/importar">Importar XML</a>.<br>
+  3. Volte ao atendimento e <strong>confirme a reserva</strong> dos medicamentos disponíveis.<br>
+  4. Após todas as reservas confirmadas, finalize o atendimento.
+</div>
+
+<form method="post">
+  <label>Código do medicamento * <input name="codigo_med" type="number" required min="1"></label>
+  <label>Quantidade * <input name="quantidade" type="number" step="0.001" min="0.001" required placeholder="Ex: 1.500"></label>
+  <label>Unidade *
+    <select name="unidade">
+      <option value="COMP">COMP — comprimido</option>
+      <option value="ML  ">ML — mililitro</option>
+      <option value="MG  ">MG — miligrama</option>
+      <option value="UN  ">UN — unidade</option>
+    </select>
+  </label>
+  <label>CRM do médico <input name="crm" maxlength="15" value="{{ atend.crm_medico or '' }}"></label>
+  <label>Instruções de uso <textarea name="instrucoes" rows="2" maxlength="500"></textarea></label>
+  <button type="submit">Registrar e gerar XML de consulta</button>
+  <a href="/atendimentos/{{ atend.id }}" class="btn" style="margin-left:10px">← Voltar</a>
+</form>
+
+{% if prescricoes %}
+<h2>Prescrições deste atendimento</h2>
+<table>
+  <tr><th>ID</th><th>Medicamento</th><th>Qtd</th><th>Consulta Estoque</th><th>Reserva</th></tr>
+  {% for p in prescricoes %}
+  <tr>
+    <td>{{ p.id }}</td>
+    <td>{{ p.codigo_med }}</td>
+    <td>{{ p.quantidade }}</td>
+    <td>
+      {% if p.disponivel is none %}<span class="badge-info">Aguardando</span>
+      {% elif p.disponivel %}<span class="badge-ok">Disponível</span>
+      {% else %}<span class="badge-erro">Indisponível</span>{% endif %}
+    </td>
+    <td>
+      {% if p.reserva_confirmada %}<span class="badge-ok">Confirmada</span>
+      {% elif p.disponivel %}<span style="color:#856404">Pendente</span>
+      {% else %}—{% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+{% endblock %}

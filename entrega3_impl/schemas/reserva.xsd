@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <xs:element name="reservas">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="reserva" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="prescricao" type="xs:integer"/>
+                            <xs:element name="cpf" type="xs:integer"/>
+                            <xs:element name="codigo_medicamento" type="xs:integer"/>
+                            <xs:element name="quantidade" type="xs:decimal"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="assinatura" minOccurs="0">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="hash" type="xs:string"/>
+                            <xs:element name="timestamp" type="xs:dateTime"/>
+                            <xs:element name="grupo_origem" type="xs:string"/>
+                            <xs:element name="algoritmo" type="xs:string"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>

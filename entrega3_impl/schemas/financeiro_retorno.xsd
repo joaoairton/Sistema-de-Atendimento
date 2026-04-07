@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <!-- Tipos reutilizáveis -->
+  <xs:simpleType name="cpfType">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="\d{11}"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="dataAAMMDDType">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="\d{6}"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="horaHHMMSSType">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="\d{6}"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="statusFinanceiroType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="REGULAR"/>
+      <xs:enumeration value="PENDENTE"/>
+      <xs:enumeration value="BLOQUEADO"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="permiteAtendimentoType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="S"/>
+      <xs:enumeration value="N"/>
+      <xs:enumeration value="E"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- Elemento raiz -->
+  <xs:element name="status_financeiro">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="header">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="data_geracao" type="dataAAMMDDType"/>
+              <xs:element name="hora_geracao" type="horaHHMMSSType"/>
+              <xs:element name="versao_layout">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:minLength value="1"/>
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element name="detalhes">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="detalhe" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="cpf_paciente" type="cpfType"/>
+                    <xs:element name="status_financeiro" type="statusFinanceiroType"/>
+                    <xs:element name="qtd_pendencias" type="xs:nonNegativeInteger"/>
+                    <xs:element name="valor_total_pendente">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:decimal">
+                          <xs:minInclusive value="0"/>
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                    <xs:element name="data_vencimento_mais_antiga">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                          <xs:pattern value="(\d{6})?"/>
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                    <xs:element name="permite_atendimento" type="permiteAtendimentoType"/>
+                    <xs:element name="observacao" type="xs:string"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+
+        <xs:element name="trailer">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="total_detalhes" type="xs:nonNegativeInteger"/>
+              <xs:element name="soma_valor_total" type="xs:decimal"/>
+              <xs:element name="qtd_bloqueados" type="xs:nonNegativeInteger"/>
+              <xs:element name="qtd_regulares" type="xs:nonNegativeInteger"/>
+              <xs:element name="hash_controle">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:pattern value="[a-f0-9]{32}"/>
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>

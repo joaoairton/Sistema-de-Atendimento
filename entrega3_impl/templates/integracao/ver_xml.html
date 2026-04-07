@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}{{ nome }}{% endblock %}
+{% block content %}
+<h1>{{ nome }}</h1>
+<a href="/xmls/{{ nome }}/download" class="btn">Download</a>
+<a href="/xmls" class="btn" style="margin-left:8px">← Voltar</a>
+<h2>Conteúdo</h2>
+<pre>{{ conteudo }}</pre>
+{% endblock %}
