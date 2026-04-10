@@ -26,6 +26,16 @@ services:
     volumes:
       - ./xml_gerados:/app/xml_gerados
       - ./xml_entrada:/app/xml_entrada
+              
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8081:80"
+    depends_on:
+      - db
 
 volumes:
   postgres_data:
